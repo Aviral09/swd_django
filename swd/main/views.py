@@ -2262,6 +2262,7 @@ def antiragging(request):
 def mess_import(request):
 
     no_of_mess_option_added = 0
+    missing_students = []
     if request.POST:
         if request.FILES:
             mess_file = request.FILES['file']
@@ -2281,7 +2282,11 @@ def mess_import(request):
                         continue
                     # Format : Name | Bits ID | MESS | MONTH(1-12)
                     bid = str(i[1].value)
-                    s = Student.objects.get(bitsId=bid)
+                    try:
+                        s = Student.objects.get(bitsId=bid)
+                    except Student.DoesNotExist:
+                        missing_students.append(bid)
+                        continue
                     # month = date.today().month + 1
                     month = int(i[3].value)
                     my = datetime(date.today().year, month, 1)
@@ -2293,7 +2298,7 @@ def mess_import(request):
                         messop = MessOption.objects.create(student = s, monthYear = my, mess = str(i[2].value))
                     no_of_mess_option_added += 1
 
-    context = {'added': no_of_mess_option_added}
+    context = {'added': no_of_mess_option_added, 'missing_students': missing_students}
     return render(request, "mess_defaulters_upload.html", context)
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -4275,7 +4280,7 @@ def order_form(request, bundle_id):
         db = client.merchportal
         merch_bundles_collection = db.merchbundles
         users_collection = db.users
-        orders_collection = db.orders
+        orders_collection = db.temporders
         
         try:
             bundle_object_id = ObjectId(bundle_id)
@@ -4334,6 +4339,7 @@ def order_form(request, bundle_id):
                 items_data = data.get('items', [])
                 combos_data = data.get('combos', [])
                 referral_id = data.get('referralID', None)  # <-- Accept referralID from frontend
+                
 
                 # Validate required fields
                 if not all([student_bits_id, student_name]):
@@ -4513,6 +4519,7 @@ def order_form(request, bundle_id):
                     'items': items_data,
                     'combos': combos_data,
                     'totalPrice': total_price,
+
                     'referralID': referral_id if referral_id else None,  
                     'createdAt': dt.datetime.now(),
                 }
