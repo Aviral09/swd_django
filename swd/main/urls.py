@@ -5,7 +5,6 @@ from django.conf import settings
 from django.views.generic import TemplateView
 from django.urls import path
 from .views import verify_referral_id
-
 from . import views
 from .views import verify_student_id
 
@@ -89,11 +88,9 @@ urlpatterns = [
     path('verify-student-id/', verify_student_id, name='verify_student_id'),
     path('verify-referral-id/', verify_referral_id, name='verify_referral_id'),
     
-    # API endpoints
+    #API endpoints
     path('api/students-on-leave-today/', views.students_on_leave_today, name='students_on_leave_today'),
-
-    
-    path('api/students-on-leave-today/', views.students_on_leave_today, name='students_on_leave_today'),
+    path('api/student-details/', views.get_student_details, name='get_student_details'),
 
 
 
